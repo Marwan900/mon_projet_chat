@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { PusherService } from "./app.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { User } from "./app.entity";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
       autoLoadEntities: true,
       synchronize: true,
     }),
+    TypeOrmModule.forFeature([User]),
   ],
   controllers: [AppController],
   providers: [PusherService]

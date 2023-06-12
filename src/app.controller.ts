@@ -1,39 +1,52 @@
 import { Body, Controller, Post, Put, Delete, Get, Param } from "@nestjs/common";
 import { PusherService } from "./app.service";
+import { User } from "./app.entity";
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Controller("api")
 export class AppController {
-  constructor(private pusherService: PusherService) {}
+  constructor(private pusherService: PusherService,
+  @InjectRepository(User)
+  private userRepository: Repository<User>,
+  ){}
 
-  @Post("messages")
+  @Post('messages')
   async createMessage(
-    @Body("username") username: string,
-    @Body("message") message: string
+    @Body('username') username: string,
+    @Body('message') message: string,
   ) {
-    // Logique de création du message
+    if (!username || !message) {
+      return { success: false, error: 'Username and message are required' };
+    }
+  
+    const newUser = new User();
+    newUser.username = username;
+    newUser.messages = message;
+    
+    const savedUser = await this.userRepository.save(newUser);
+  
     // Envoi d'une notification en temps réel aux clients via Pusher
-    await this.pusherService.trigger("chat", "messageCreated", {
-      username,
-      message
-    });
-
+    await this.pusherService.trigger('chat', 'messageCreated', savedUser);
+  
     return { success: true };
   }
+  
+  
+  
+  
 
   @Get("messages")
   async getAllMessages() {
-    // Logique de récupération de tous les messages
-    // ...
-
-    return []; // Retournez les messages récupérés depuis la base de données ou tout autre moyen de stockage
+    const messages = await this.userRepository.find();
+    return messages;
   }
 
   @Get("messages/:id")
   async getMessageById(@Param("id") id: string) {
-    // Logique de récupération d'un message en fonction de l'ID
-    // ...
 
-    return {}; // Retournez le message récupéré depuis la base de données ou tout autre moyen de stockage
+
+    return {}; // Retournez le message récupéré depuis la base de données 
   }
 
   @Put("messages/:id")
