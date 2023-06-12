@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Put, Delete, Get, Param } from "@nestjs/common";
+import { Body, Controller, Post, Put, Delete, Get, Param, NotFoundException } from "@nestjs/common";
 import { PusherService } from "./app.service";
 import { User } from "./app.entity";
 import { InjectRepository } from '@nestjs/typeorm';
@@ -23,14 +23,19 @@ export class AppController {
     const newUser = new User();
     newUser.username = username;
     newUser.messages = message;
-    
+  
     const savedUser = await this.userRepository.save(newUser);
   
     // Envoi d'une notification en temps réel aux clients via Pusher
-    await this.pusherService.trigger('chat', 'messageCreated', savedUser);
+    await this.pusherService.trigger('chat', 'messageCreated', {
+      id: savedUser.id,
+      username: savedUser.username,
+      message: savedUser.messages,
+    });
   
-    return { success: true };
+    return { success: true, id: savedUser.id };
   }
+  
   
   
   
@@ -45,9 +50,10 @@ export class AppController {
   @Get("messages/:id")
   async getMessageById(@Param("id") id: string) {
 
-
-    return {}; // Retournez le message récupéré depuis la base de données 
+    
+    return ;
   }
+  
 
   @Put("messages/:id")
   async updateMessage(
